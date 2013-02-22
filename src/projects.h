@@ -32,6 +32,11 @@ namespace Internal {
 
 struct Project
 {
+	Project()
+	{
+		currentBuildDone = -1;
+	}
+
     QString	name;
     QString date;
     QString color;
@@ -39,6 +44,7 @@ struct Project
     QString lastBuildUsername;
     int healthInPercent;
     bool lastBuildOK;
+	int currentBuildDone;
     void clear() {
         name="";
         date="";
@@ -79,6 +85,8 @@ public:
 
 		int		queueSize() const;
 		Item	item(int i) const;
+
+		int		buildSize() const;
 
         void	setIgnored(const QString& list);
 

@@ -35,12 +35,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QAuthenticator>
+#include <math.h>
 
 #include <app/app_version.h>
 
 #include <QFile>
 
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/icore.h>
+#include <coreplugin/messagemanager.h>
 
 #ifdef Q_OS_UNIX
 #include <sys/utsname.h>
@@ -114,7 +117,7 @@ static const QString getOsString()
 }
 
 DataFetcher::DataFetcher(int maxItems, QObject *parent)
-    : QObject(parent), m_items(0), m_maxItems(maxItems)
+	: QObject(parent), m_items(0), m_maxItems(maxItems), m_currentBuildParsed(false)
 {
     connect(&mNetworkAccess, SIGNAL(finished(QNetworkReply*)),
             SLOT(finished(QNetworkReply*)));
@@ -201,6 +204,7 @@ void DataFetcher::finished(QNetworkReply* repl)
 		m_errorMessage = "Error code (NOT HTTP-Code!) : " + QString::number(repl->error()) + " / HTTP code " + repl->attribute(QNetworkRequest::HttpStatusCodeAttribute).toString() +" \n\t" + repl->errorString() +"\n";
     }
     else {
+		m_currentBuildParsed = false;
         QXmlStreamReader xmlReader(repl->readAll());
         parseXml(xmlReader);
     }
@@ -255,12 +259,13 @@ void DataFetcher::parseJob(QXmlStreamReader &xml)
                 currentProject.color = xml.readElementText();
             else if (xml.name() == "healthReport")
                 parseProjectHealth(xml);
-            else if (xml.name() == "lastBuild")
-                parseLastBuild(xml);
+			else if (xml.name() == "lastBuild")
+				parseLastBuild(xml);
             else
                 xml.skipCurrentElement();
         }
     }
+	m_currentBuildParsed = false;
     emit projectItemReady(currentProject);
 }
 void DataFetcher::parseProjectHealth(QXmlStreamReader &xml)
@@ -278,19 +283,56 @@ void DataFetcher::parseProjectHealth(QXmlStreamReader &xml)
 
 void DataFetcher::parseLastBuild(QXmlStreamReader &xml)
 {
+	qulonglong duration = 0, estimateDuration = 0;
+	bool building = false;
     while (!(xml.error() || xml.atEnd() || endOfElement("lastBuild",xml)))
     {
         if (xml.readNextStartElement()) {
             if (xml.name() == "userName")
                 currentProject.lastBuildUsername = xml.readElementText();
-            if (xml.name() == "timestamp") {
+			else if (xml.name() == "culprit")
+			{
+				while (!(xml.error() || xml.atEnd() || endOfElement("culprit",xml)))
+				{
+					if(xml.readNextStartElement())
+					{
+						if (xml.name() == "fullName")
+							currentProject.lastBuildUsername = xml.readElementText();
+						else
+							xml.skipCurrentElement();
+					}
+				}
+			}
+			else if (xml.name() == "timestamp") {
                 qulonglong timestamp= ((qulonglong)xml.readElementText().toULongLong());
                 currentProject.date = QDateTime::fromMSecsSinceEpoch( timestamp ).toString(Qt::SystemLocaleLongDate);
             }
-            if (xml.name() == "result")
+			else if (xml.name() == "result")
                 currentProject.lastBuildOK = xml.readElementText() == "SUCCESS";
+			else if (xml.name() == "estimatedDuration") {
+				estimateDuration = ((qulonglong)xml.readElementText().toULongLong());
+			}
+			else if (xml.name() == "duration") {
+				duration = ((qulonglong)xml.readElementText().toULongLong());
+			}
+			else if(xml.name() == "building") {
+				if(xml.readElementText() == "true")
+				{
+					building = true;
+				}
+			}
+			else
+				xml.skipCurrentElement();
         }
     }
+
+	if(m_currentBuildParsed == false && building && estimateDuration > 0)
+	{
+		currentProject.currentBuildDone = floor(duration * 100 / estimateDuration);
+		m_currentBuildParsed = true;
+	}
+	else
+		currentProject.currentBuildDone = -1;
 }
 
 void DataFetcher::parseItem(QXmlStreamReader &xml)

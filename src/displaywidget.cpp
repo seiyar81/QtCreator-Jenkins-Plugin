@@ -53,20 +53,17 @@ DisplayWidget::DisplayWidget(Projects* projects) :
     setContextMenuPolicy(Qt::ActionsContextMenu);
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->setContentsMargins(8, 2, 0, 2);
+	layout->setContentsMargins(4, 2, 0, 4);
     layout->setSpacing(2);
     setLayout(layout);
     QHBoxLayout *errorLayout = new QHBoxLayout;
-    errorLayout->setSpacing(2);
     layout->addLayout(errorLayout);
-    errorLayout->addStretch(1);
     errorLayout->addWidget(m_errorIcon);
     errorLayout->addWidget(m_noConnectionIcon);
     errorLayout->addWidget(m_passIcon);
 	errorLayout->addStretch(1);
 	errorLayout->addWidget(m_queue);
-	errorLayout->addStretch(2);
-
+	errorLayout->addStretch(1);
 
     m_errorIcon->setAlignment(Qt::AlignCenter);
     m_passIcon->setAlignment(Qt::AlignLeft);
@@ -103,8 +100,10 @@ void DisplayWidget::updateState()
         m_passIcon->setEnabled(!error && numProjects > 0);
         m_errorIcon->setEnabled(error && numProjects > 0);
 		int queue = m_projects->queueSize();
+		int builds = m_projects->buildSize();
+
 		m_queue->setEnabled( true );
-		m_queue->setText( QString::number(queue) );
+		m_queue->setText( QString::number(queue) + "  " + QString::number(builds) );
     }
 }
 
@@ -142,7 +141,7 @@ QString	DisplayWidget::tooltipText() const
 
 	if(m_projects->queueSize())
 	{
-		rc += "<table width=\"600\">\n";
+		rc += "<table width=\"800\">\n";
 		rc += "<caption>Current builds</caption>\n";
 		rc += "<tr><td>Project Name</td>";
 		rc += "<td>Why</td>";
@@ -164,11 +163,12 @@ QString	DisplayWidget::tooltipText() const
 		rc += "</table>";
 	}
 
-	rc +="<table width=\"600\">\n<tr>";
+	rc +="<table width=\"800\">\n<tr>";
     rc += QString("<td>Project Name</td>");
     rc += QString("<td>Project Health</td>");
     rc += QString("<td>Last Build Date</td>");
     rc += QString("<td>Last Build User</td>");
+	rc += QString("<td>Current build</td>");
     rc +="</tr>\n";
     for (int i = 0 ; i < numProjects; i++) {
         Project proj = m_projects->project(i);
@@ -179,6 +179,12 @@ QString	DisplayWidget::tooltipText() const
         rc += QString("<td><font color=\"%1\">%2%</font></td>").arg(color).arg(proj.healthInPercent);
         rc += QString("<td><font color=\"%1\">%2</font></td>").arg(color).arg(proj.date);
         rc += QString("<td><font color=\"%1\">%2</font></td>").arg(color).arg(proj.lastBuildUsername);
+
+		QString currentBuild = "";
+		if(proj.currentBuildDone != -1)
+			currentBuild = QString::number( proj.currentBuildDone ) + " %";
+
+		rc += QString("<td><font color=\"%1\">%2</font></td>").arg(color).arg(currentBuild);
         rc +="</tr>\n";
     }
     rc +="</table>\n";

@@ -5,6 +5,8 @@ A simple plugin for QtCreator to monitor a jenkins continuous integration server
 
 The plugin adds a red or green icon depending on the build status and provides a tooltip to show the current build status.
 
+It also displays the progress of currentlty running builds, and of the queued ones
+
 At the moment, commands to initiate a build are not supported but will hopefully make it into a future version.
 
 Supported Platforms

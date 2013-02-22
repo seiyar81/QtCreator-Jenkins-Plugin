@@ -48,6 +48,7 @@ private:
 
     int m_items;
     int m_maxItems;
+	bool m_currentBuildParsed;
 
 };
 
