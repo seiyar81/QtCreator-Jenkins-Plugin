@@ -55,6 +55,18 @@ int Projects::queueSize() const
 	return m_queueList.size();
 }
 
+int Projects::buildSize() const
+{
+	if(!this->size())
+		return 0;
+	int builds = 0;
+	foreach (Project p, m_list){
+		if(p.currentBuildDone != -1)
+			++builds;
+	}
+	return builds;
+}
+
 Project Projects::project(int i) const
 {
     if (i < 0  || i >= size()) return Project();
