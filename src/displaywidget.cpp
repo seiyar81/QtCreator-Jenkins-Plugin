@@ -142,9 +142,9 @@ QString	DisplayWidget::tooltipText() const
 	if(m_projects->queueSize())
 	{
 		rc += "<table width=\"800\">\n";
-		rc += "<caption>Current builds</caption>\n";
+		rc += "<caption>Queued builds</caption>\n";
 		rc += "<tr><td>Project Name</td>";
-		rc += "<td>Why</td>";
+		rc += "<td>Action</td>";
 		rc += "<td>Blocked</td>";
 		rc += "<td>Buildable</td>";
 		rc +="</tr>\n";
@@ -173,6 +173,7 @@ QString	DisplayWidget::tooltipText() const
     for (int i = 0 ; i < numProjects; i++) {
         Project proj = m_projects->project(i);
         QString color = proj.lastBuildOK ? "green" : "red";
+		proj.color.remove("_anime");
 
         rc +="<tr>";
         rc += QString("<td><font color=\"%1\">%2</font></td>").arg(proj.color).arg(proj.name);

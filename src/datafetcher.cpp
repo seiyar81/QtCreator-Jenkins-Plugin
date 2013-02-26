@@ -283,7 +283,7 @@ void DataFetcher::parseProjectHealth(QXmlStreamReader &xml)
 
 void DataFetcher::parseLastBuild(QXmlStreamReader &xml)
 {
-	qulonglong duration = 0, estimateDuration = 0;
+	qulonglong timestamp = 0, estimateDuration = 0;
 	bool building = false;
     while (!(xml.error() || xml.atEnd() || endOfElement("lastBuild",xml)))
     {
@@ -304,16 +304,13 @@ void DataFetcher::parseLastBuild(QXmlStreamReader &xml)
 				}
 			}
 			else if (xml.name() == "timestamp") {
-                qulonglong timestamp= ((qulonglong)xml.readElementText().toULongLong());
+				timestamp = ((qulonglong)xml.readElementText().toULongLong());
                 currentProject.date = QDateTime::fromMSecsSinceEpoch( timestamp ).toString(Qt::SystemLocaleLongDate);
             }
 			else if (xml.name() == "result")
                 currentProject.lastBuildOK = xml.readElementText() == "SUCCESS";
 			else if (xml.name() == "estimatedDuration") {
 				estimateDuration = ((qulonglong)xml.readElementText().toULongLong());
-			}
-			else if (xml.name() == "duration") {
-				duration = ((qulonglong)xml.readElementText().toULongLong());
 			}
 			else if(xml.name() == "building") {
 				if(xml.readElementText() == "true")
@@ -328,7 +325,19 @@ void DataFetcher::parseLastBuild(QXmlStreamReader &xml)
 
 	if(m_currentBuildParsed == false && building && estimateDuration > 0)
 	{
-		currentProject.currentBuildDone = floor(duration * 100 / estimateDuration);
+		quint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+		int duration = currentTimestamp - timestamp;
+		if(duration <= 0)
+		{
+			currentProject.currentBuildDone = 0;
+
+		}
+		else
+		{
+			currentProject.currentBuildDone = floor(duration * 100 / estimateDuration);
+			if(currentProject.currentBuildDone > 100)
+				currentProject.currentBuildDone = 100;
+		}
 		m_currentBuildParsed = true;
 	}
 	else
