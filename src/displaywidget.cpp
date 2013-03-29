@@ -141,7 +141,7 @@ QString	DisplayWidget::tooltipText() const
 
 	if(m_projects->queueSize())
 	{
-		rc += "<table width=\"800\">\n";
+        rc += "<table width=\"1000\" style=\"font-size: 12px\">\n";
 		rc += "<caption>Queued builds</caption>\n";
 		rc += "<tr><td>Project Name</td>";
 		rc += "<td>Action</td>";
@@ -163,7 +163,7 @@ QString	DisplayWidget::tooltipText() const
 		rc += "</table>";
 	}
 
-	rc +="<table width=\"800\">\n<tr>";
+    rc +="<table width=\"1000\" style=\"font-size: 12px\">\n<tr>";
     rc += QString("<td>Project Name</td>");
     rc += QString("<td>Project Health</td>");
     rc += QString("<td>Last Build Date</td>");

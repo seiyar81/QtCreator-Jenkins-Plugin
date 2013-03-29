@@ -99,7 +99,6 @@ bool JenkinsPlugin::initialize(const QStringList &arguments, QString *error_mess
 
 void  JenkinsPlugin::refresh()
 {
-    messageManager->printToOutputPane("Jenkins: refreshing", true);
     if (m_reading) return;
     m_reading = true;
     m_timer->stop();
@@ -111,7 +110,6 @@ void  JenkinsPlugin::refresh()
 
 void  JenkinsPlugin::readFinished(bool error,const QString& message)
 {
-    messageManager->printToOutputPane("Jenkins: read finished: " + message, false);
     m_reading = false;
     m_projects->setConnectionError(error, message);
     int seconds = m_settings->refresh;
