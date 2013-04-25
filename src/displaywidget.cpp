@@ -183,7 +183,7 @@ QString	DisplayWidget::tooltipText() const
 
 		QString currentBuild = "";
 		if(proj.currentBuildDone != -1)
-			currentBuild = QString::number( proj.currentBuildDone ) + " %";
+			currentBuild = QString("Yes");
 
 		rc += QString("<td><font color=\"%1\">%2</font></td>").arg(color).arg(currentBuild);
         rc +="</tr>\n";
